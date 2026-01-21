@@ -1,0 +1,322 @@
+<?xml version="1.0" encoding=""?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>Untitled</title>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<meta name="generator" content="CoolUtils HTML exporter" />
+<style type="text/css">
+<!--
+body { color: #2E3A34; background-color: #FFFFFF; }
+.python1-classname { color: #4f6f64; font-weight: 600; }
+.python1-comment { color: #8FAFA1; font-style: italic; }
+.python1-commentedcode { color: #8FAFA1; font-style: italic; }
+.python1-documentation { color: #5F7C6A; }
+.python1-float { color: #6B8F7D; }
+.python1-functionname { color: #3F5F55; font-weight: 600; }
+.python1-hexadecimal { color: #6B8F7D; }
+.python1-identifier { color: #000000; }
+.python1-matchingbrace { color: #5F7C6A; font-weight: bold; }
+.python1-multi-linestring { color: #9BB7A5; }
+.python1-nonreservedkeyword { color: #4F6F64; font-weight: 600}
+.python1-number { color: #6B8F7D; }
+.python1-octal { color: #6B8F7D; }
+.python1-reservedword { color: #4F6F64; font-weight: 600 }
+.python1-space { color: #C0C0C0; }
+.python1-string { color: #9BB7A5; }
+.python1-symbol { color: #2E3A34; }
+.python1-syntaxerror { color: #A84A4A; font-weight: bold;}
+.python1-systemfunctionsandvariables { font-weight: bold; }
+.python1-unbalancedbrace { color: #FFFF00; }
+-->
+</style>
+</head>
+<body>
+<!--StartFragment--><pre><code><span class="python1-comment"># -*- Churn Analysis -*-
+</span>
+
+### Libraries
+I imported Python libraries for data analysis, visualization, and modeling:
+- `pandas` &amp; `numpy` for data manipulation and calculations  
+- `seaborn` &amp; `matplotlib` for visualizations  
+- `scikit-learn` for building the logistic regression churn model
+
+### Dataset Loading
+I loaded the IBM Telco Customer Churn dataset, which contains subscription information for customers:
+- Demographics (Gender, SeniorCitizen)
+- Subscription details (Contract type, Tenure, Add-ons)
+- Billing info (MonthlyCharges, TotalCharges)
+- Churn flag (Yes/No)
+
+This dataset allows us to analyze churn patterns and customer lifetime value.
+&quot;&quot;&quot;
+
+</span><span class="python1-reservedword">import</span><span class="python1-space"> </span><span class="python1-identifier">pandas</span><span class="python1-space"> </span><span class="python1-reservedword">as</span><span class="python1-space"> </span><span class="python1-identifier">pd
+
+file_path</span><span class="python1-space"> </span><span class="python1-symbol">=</span><span class="python1-space"> </span><span class="python1-string">'/content/drive/MyDrive/Portfolio/Telco-Customer-Churn.csv'
+</span><span class="python1-identifier">df</span><span class="python1-space"> </span><span class="python1-symbol">=</span><span class="python1-space"> </span><span class="python1-identifier">pd</span><span class="python1-symbol">.</span><span class="python1-identifier">read_csv</span><span class="python1-symbol">(</span><span class="python1-identifier">file_path</span><span class="python1-symbol">)
+
+</span><span class="python1-reservedword">print</span><span class="python1-symbol">(</span><span class="python1-identifier">df</span><span class="python1-symbol">.</span><span class="python1-identifier">head</span><span class="python1-symbol">())
+
+</span><span class="python1-identifier">df</span><span class="python1-symbol">.</span><span class="python1-identifier">shape
+df</span><span class="python1-symbol">.</span><span class="python1-identifier">info</span><span class="python1-symbol">()
+</span><span class="python1-identifier">df</span><span class="python1-symbol">.</span><span class="python1-identifier">isna</span><span class="python1-symbol">().</span><span class="python1-identifier">sum</span><span class="python1-symbol">()
+
+</span><span class="python1-documentation">&quot;&quot;&quot;### Data Cleaning
+- Convert `TotalCharges` to numeric, as some entries may be stored as strings  
+- Drop missing values to avoid errors in calculations  
+- Encode `Churn` as binary (1 = Yes, 0 = No) for modeling and analysis
+
+&quot;&quot;&quot;
+
+</span><span class="python1-comment"># convert TotalCharges to numeric
+</span><span class="python1-identifier">df</span><span class="python1-symbol">[</span><span class="python1-string">&quot;TotalCharges&quot;</span><span class="python1-symbol">]</span><span class="python1-space"> </span><span class="python1-symbol">=</span><span class="python1-space"> </span><span class="python1-identifier">pd</span><span class="python1-symbol">.</span><span class="python1-identifier">to_numeric</span><span class="python1-symbol">(</span><span class="python1-identifier">df</span><span class="python1-symbol">[</span><span class="python1-string">&quot;TotalCharges&quot;</span><span class="python1-symbol">],</span><span class="python1-space"> </span><span class="python1-identifier">errors</span><span class="python1-symbol">=</span><span class="python1-string">&quot;coerce&quot;</span><span class="python1-symbol">)
+
+</span><span class="python1-comment"># drop rows with missing TotalCharges
+</span><span class="python1-identifier">df</span><span class="python1-space"> </span><span class="python1-symbol">=</span><span class="python1-space"> </span><span class="python1-identifier">df</span><span class="python1-symbol">.</span><span class="python1-identifier">dropna</span><span class="python1-symbol">(</span><span class="python1-identifier">subset</span><span class="python1-symbol">=[</span><span class="python1-string">&quot;TotalCharges&quot;</span><span class="python1-symbol">])
+
+</span><span class="python1-identifier">df</span><span class="python1-symbol">.</span><span class="python1-identifier">info</span><span class="python1-symbol">()
+
+</span><span class="python1-identifier">df</span><span class="python1-symbol">[</span><span class="python1-string">&quot;Churn&quot;</span><span class="python1-symbol">]</span><span class="python1-space"> </span><span class="python1-symbol">=</span><span class="python1-space"> </span><span class="python1-identifier">df</span><span class="python1-symbol">[</span><span class="python1-string">&quot;Churn&quot;</span><span class="python1-symbol">].</span><span class="python1-identifier">map</span><span class="python1-symbol">({</span><span class="python1-string">&quot;Yes&quot;</span><span class="python1-symbol">:</span><span class="python1-space"> </span><span class="python1-number">1</span><span class="python1-symbol">,</span><span class="python1-space"> </span><span class="python1-string">&quot;No&quot;</span><span class="python1-symbol">:</span><span class="python1-space"> </span><span class="python1-number">0</span><span class="python1-symbol">})
+</span><span class="python1-identifier">df</span><span class="python1-symbol">[</span><span class="python1-string">&quot;Churn&quot;</span><span class="python1-symbol">].</span><span class="python1-identifier">value_counts</span><span class="python1-symbol">(</span><span class="python1-identifier">normalize</span><span class="python1-symbol">=</span><span class="python1-nonreservedkeyword">True</span><span class="python1-symbol">)
+
+</span><span class="python1-documentation">&quot;&quot;&quot;### Customer Lifetime Value (CLV)
+- CLV estimates total revenue from each customer: `CLV = MonthlyCharges Г— Tenure`  
+- Helps quantify the potential revenue lost if a customer churns  
+- Can be used to prioritize high-value customers for retention campaigns
+
+&quot;&quot;&quot;
+
+</span><span class="python1-identifier">df</span><span class="python1-symbol">[</span><span class="python1-string">&quot;CLV&quot;</span><span class="python1-symbol">]</span><span class="python1-space"> </span><span class="python1-symbol">=</span><span class="python1-space"> </span><span class="python1-identifier">df</span><span class="python1-symbol">[</span><span class="python1-string">&quot;MonthlyCharges&quot;</span><span class="python1-symbol">]</span><span class="python1-space"> </span><span class="python1-symbol">*</span><span class="python1-space"> </span><span class="python1-identifier">df</span><span class="python1-symbol">[</span><span class="python1-string">&quot;tenure&quot;</span><span class="python1-symbol">]
+
+</span><span class="python1-identifier">df</span><span class="python1-symbol">[</span><span class="python1-string">&quot;CLV&quot;</span><span class="python1-symbol">].</span><span class="python1-identifier">describe</span><span class="python1-symbol">()
+
+</span><span class="python1-documentation">&quot;&quot;&quot;### Executive KPIs
+Calculate key metrics that executives care about:
+- Total number of customers  
+- Overall churn rate  
+- Average monthly charge  
+- Average CLV per customer  
+- Total historical revenue  
+
+These KPIs provide a high-level view of the business and highlight potential risk areas.
+
+&quot;&quot;&quot;
+
+</span><span class="python1-identifier">kpis</span><span class="python1-space"> </span><span class="python1-symbol">=</span><span class="python1-space"> </span><span class="python1-symbol">{
+</span><span class="python1-space">    </span><span class="python1-string">&quot;Total Customers&quot;</span><span class="python1-symbol">:</span><span class="python1-space"> </span><span class="python1-identifier">df</span><span class="python1-symbol">.</span><span class="python1-identifier">shape</span><span class="python1-symbol">[</span><span class="python1-number">0</span><span class="python1-symbol">],
+</span><span class="python1-space">    </span><span class="python1-string">&quot;Churn Rate&quot;</span><span class="python1-symbol">:</span><span class="python1-space"> </span><span class="python1-nonreservedkeyword">round</span><span class="python1-symbol">(</span><span class="python1-identifier">df</span><span class="python1-symbol">[</span><span class="python1-string">&quot;Churn&quot;</span><span class="python1-symbol">].</span><span class="python1-identifier">mean</span><span class="python1-symbol">(),</span><span class="python1-space"> </span><span class="python1-number">3</span><span class="python1-symbol">),
+</span><span class="python1-space">    </span><span class="python1-string">&quot;Avg Monthly Charge&quot;</span><span class="python1-symbol">:</span><span class="python1-space"> </span><span class="python1-nonreservedkeyword">round</span><span class="python1-symbol">(</span><span class="python1-identifier">df</span><span class="python1-symbol">[</span><span class="python1-string">&quot;MonthlyCharges&quot;</span><span class="python1-symbol">].</span><span class="python1-identifier">mean</span><span class="python1-symbol">(),</span><span class="python1-space"> </span><span class="python1-number">2</span><span class="python1-symbol">),
+</span><span class="python1-space">    </span><span class="python1-string">&quot;Avg CLV&quot;</span><span class="python1-symbol">:</span><span class="python1-space"> </span><span class="python1-nonreservedkeyword">round</span><span class="python1-symbol">(</span><span class="python1-identifier">df</span><span class="python1-symbol">[</span><span class="python1-string">&quot;CLV&quot;</span><span class="python1-symbol">].</span><span class="python1-identifier">mean</span><span class="python1-symbol">(),</span><span class="python1-space"> </span><span class="python1-number">2</span><span class="python1-symbol">),
+</span><span class="python1-space">    </span><span class="python1-string">&quot;Total Historical Revenue&quot;</span><span class="python1-symbol">:</span><span class="python1-space"> </span><span class="python1-nonreservedkeyword">round</span><span class="python1-symbol">(</span><span class="python1-identifier">df</span><span class="python1-symbol">[</span><span class="python1-string">&quot;TotalCharges&quot;</span><span class="python1-symbol">].</span><span class="python1-identifier">sum</span><span class="python1-symbol">(),</span><span class="python1-space"> </span><span class="python1-number">2</span><span class="python1-symbol">)
+}
+
+</span><span class="python1-identifier">kpis
+
+df</span><span class="python1-symbol">.</span><span class="python1-identifier">groupby</span><span class="python1-symbol">(</span><span class="python1-string">&quot;Contract&quot;</span><span class="python1-symbol">)[</span><span class="python1-string">&quot;Churn&quot;</span><span class="python1-symbol">].</span><span class="python1-identifier">mean</span><span class="python1-symbol">().</span><span class="python1-identifier">sort_values</span><span class="python1-symbol">(</span><span class="python1-identifier">ascending</span><span class="python1-symbol">=</span><span class="python1-nonreservedkeyword">False</span><span class="python1-symbol">)
+
+</span><span class="python1-identifier">df</span><span class="python1-symbol">.</span><span class="python1-identifier">groupby</span><span class="python1-symbol">(</span><span class="python1-string">&quot;PaymentMethod&quot;</span><span class="python1-symbol">)[</span><span class="python1-string">&quot;Churn&quot;</span><span class="python1-symbol">].</span><span class="python1-identifier">mean</span><span class="python1-symbol">().</span><span class="python1-identifier">sort_values</span><span class="python1-symbol">(</span><span class="python1-identifier">ascending</span><span class="python1-symbol">=</span><span class="python1-nonreservedkeyword">False</span><span class="python1-symbol">)
+
+</span><span class="python1-identifier">addons</span><span class="python1-space"> </span><span class="python1-symbol">=</span><span class="python1-space"> </span><span class="python1-symbol">[</span><span class="python1-string">&quot;OnlineSecurity&quot;</span><span class="python1-symbol">,</span><span class="python1-space"> </span><span class="python1-string">&quot;TechSupport&quot;</span><span class="python1-symbol">,</span><span class="python1-space"> </span><span class="python1-string">&quot;DeviceProtection&quot;</span><span class="python1-symbol">]
+
+</span><span class="python1-reservedword">for</span><span class="python1-space"> </span><span class="python1-identifier">col</span><span class="python1-space"> </span><span class="python1-reservedword">in</span><span class="python1-space"> </span><span class="python1-identifier">addons</span><span class="python1-symbol">:
+</span><span class="python1-space">    </span><span class="python1-reservedword">print</span><span class="python1-symbol">(</span><span class="python1-identifier">col</span><span class="python1-symbol">)
+</span><span class="python1-space">    </span><span class="python1-reservedword">print</span><span class="python1-symbol">(</span><span class="python1-identifier">df</span><span class="python1-symbol">.</span><span class="python1-identifier">groupby</span><span class="python1-symbol">(</span><span class="python1-identifier">col</span><span class="python1-symbol">)[</span><span class="python1-string">&quot;Churn&quot;</span><span class="python1-symbol">].</span><span class="python1-identifier">mean</span><span class="python1-symbol">())
+</span><span class="python1-space">    </span><span class="python1-reservedword">print</span><span class="python1-symbol">()
+
+</span><span class="python1-identifier">df</span><span class="python1-symbol">[</span><span class="python1-string">&quot;tenure_group&quot;</span><span class="python1-symbol">]</span><span class="python1-space"> </span><span class="python1-symbol">=</span><span class="python1-space"> </span><span class="python1-identifier">pd</span><span class="python1-symbol">.</span><span class="python1-identifier">cut</span><span class="python1-symbol">(
+</span><span class="python1-space">    </span><span class="python1-identifier">df</span><span class="python1-symbol">[</span><span class="python1-string">&quot;tenure&quot;</span><span class="python1-symbol">],
+</span><span class="python1-space">    </span><span class="python1-identifier">bins</span><span class="python1-symbol">=[</span><span class="python1-number">0</span><span class="python1-symbol">,</span><span class="python1-space"> </span><span class="python1-number">12</span><span class="python1-symbol">,</span><span class="python1-space"> </span><span class="python1-number">24</span><span class="python1-symbol">,</span><span class="python1-space"> </span><span class="python1-number">48</span><span class="python1-symbol">,</span><span class="python1-space"> </span><span class="python1-number">72</span><span class="python1-symbol">],
+</span><span class="python1-space">    </span><span class="python1-identifier">labels</span><span class="python1-symbol">=[</span><span class="python1-string">&quot;0вЂ“12&quot;</span><span class="python1-symbol">,</span><span class="python1-space"> </span><span class="python1-string">&quot;12вЂ“24&quot;</span><span class="python1-symbol">,</span><span class="python1-space"> </span><span class="python1-string">&quot;24вЂ“48&quot;</span><span class="python1-symbol">,</span><span class="python1-space"> </span><span class="python1-string">&quot;48+&quot;</span><span class="python1-symbol">]
+)
+
+</span><span class="python1-identifier">df</span><span class="python1-symbol">.</span><span class="python1-identifier">groupby</span><span class="python1-symbol">(</span><span class="python1-string">&quot;tenure_group&quot;</span><span class="python1-symbol">)[</span><span class="python1-string">&quot;Churn&quot;</span><span class="python1-symbol">].</span><span class="python1-identifier">mean</span><span class="python1-symbol">()
+
+</span><span class="python1-comment">#total lifetime revenue lost
+</span><span class="python1-identifier">revenue_at_risk</span><span class="python1-space"> </span><span class="python1-symbol">=</span><span class="python1-space"> </span><span class="python1-identifier">df</span><span class="python1-symbol">[</span><span class="python1-identifier">df</span><span class="python1-symbol">[</span><span class="python1-string">&quot;Churn&quot;</span><span class="python1-symbol">]</span><span class="python1-space"> </span><span class="python1-symbol">==</span><span class="python1-space"> </span><span class="python1-number">1</span><span class="python1-symbol">][</span><span class="python1-string">&quot;CLV&quot;</span><span class="python1-symbol">].</span><span class="python1-identifier">sum</span><span class="python1-symbol">()
+</span><span class="python1-identifier">revenue_at_risk
+
+df</span><span class="python1-symbol">[</span><span class="python1-string">&quot;RiskSegment&quot;</span><span class="python1-symbol">]</span><span class="python1-space"> </span><span class="python1-symbol">=</span><span class="python1-space"> </span><span class="python1-string">&quot;Low&quot;
+
+</span><span class="python1-identifier">df</span><span class="python1-symbol">.</span><span class="python1-identifier">loc</span><span class="python1-symbol">[
+</span><span class="python1-space">    </span><span class="python1-symbol">(</span><span class="python1-identifier">df</span><span class="python1-symbol">[</span><span class="python1-string">&quot;Contract&quot;</span><span class="python1-symbol">]</span><span class="python1-space"> </span><span class="python1-symbol">==</span><span class="python1-space"> </span><span class="python1-string">&quot;Month-to-month&quot;</span><span class="python1-symbol">)</span><span class="python1-space"> </span><span class="python1-symbol">&amp;
+</span><span class="python1-space">    </span><span class="python1-symbol">(</span><span class="python1-identifier">df</span><span class="python1-symbol">[</span><span class="python1-string">&quot;tenure&quot;</span><span class="python1-symbol">]</span><span class="python1-space"> </span><span class="python1-symbol">&lt;</span><span class="python1-space"> </span><span class="python1-number">12</span><span class="python1-symbol">)</span><span class="python1-space"> </span><span class="python1-symbol">&amp;
+</span><span class="python1-space">    </span><span class="python1-symbol">(</span><span class="python1-identifier">df</span><span class="python1-symbol">[</span><span class="python1-string">&quot;MonthlyCharges&quot;</span><span class="python1-symbol">]</span><span class="python1-space"> </span><span class="python1-symbol">&gt;</span><span class="python1-space"> </span><span class="python1-identifier">df</span><span class="python1-symbol">[</span><span class="python1-string">&quot;MonthlyCharges&quot;</span><span class="python1-symbol">].</span><span class="python1-identifier">median</span><span class="python1-symbol">()),
+</span><span class="python1-space">    </span><span class="python1-string">&quot;RiskSegment&quot;
+</span><span class="python1-symbol">]</span><span class="python1-space"> </span><span class="python1-symbol">=</span><span class="python1-space"> </span><span class="python1-string">&quot;High&quot;
+
+</span><span class="python1-identifier">df</span><span class="python1-symbol">[</span><span class="python1-string">&quot;RiskSegment&quot;</span><span class="python1-symbol">].</span><span class="python1-identifier">value_counts</span><span class="python1-symbol">()
+
+</span><span class="python1-documentation">&quot;&quot;&quot;### Customer Lifetime Value (CLV)
+- CLV estimates total revenue from each customer: `CLV = MonthlyCharges Г— Tenure`  
+- Helps quantify the potential revenue lost if a customer churns  
+- Can be used to prioritize high-value customers for retention campaigns
+
+&quot;&quot;&quot;
+
+</span><span class="python1-comment">#churn by contract type
+</span><span class="python1-reservedword">import</span><span class="python1-space"> </span><span class="python1-identifier">seaborn</span><span class="python1-space"> </span><span class="python1-reservedword">as</span><span class="python1-space"> </span><span class="python1-identifier">sns
+</span><span class="python1-reservedword">import</span><span class="python1-space"> </span><span class="python1-identifier">matplotlib</span><span class="python1-symbol">.</span><span class="python1-identifier">pyplot</span><span class="python1-space"> </span><span class="python1-reservedword">as</span><span class="python1-space"> </span><span class="python1-identifier">plt
+
+plt</span><span class="python1-symbol">.</span><span class="python1-identifier">figure</span><span class="python1-symbol">(</span><span class="python1-identifier">figsize</span><span class="python1-symbol">=(</span><span class="python1-number">8</span><span class="python1-symbol">,</span><span class="python1-number">4</span><span class="python1-symbol">))
+</span><span class="python1-identifier">sns</span><span class="python1-symbol">.</span><span class="python1-identifier">barplot</span><span class="python1-symbol">(
+</span><span class="python1-space">    </span><span class="python1-identifier">x</span><span class="python1-symbol">=</span><span class="python1-identifier">df</span><span class="python1-symbol">.</span><span class="python1-identifier">groupby</span><span class="python1-symbol">(</span><span class="python1-string">&quot;Contract&quot;</span><span class="python1-symbol">)[</span><span class="python1-string">&quot;Churn&quot;</span><span class="python1-symbol">].</span><span class="python1-identifier">mean</span><span class="python1-symbol">().</span><span class="python1-identifier">index</span><span class="python1-symbol">,
+</span><span class="python1-space">    </span><span class="python1-identifier">y</span><span class="python1-symbol">=</span><span class="python1-identifier">df</span><span class="python1-symbol">.</span><span class="python1-identifier">groupby</span><span class="python1-symbol">(</span><span class="python1-string">&quot;Contract&quot;</span><span class="python1-symbol">)[</span><span class="python1-string">&quot;Churn&quot;</span><span class="python1-symbol">].</span><span class="python1-identifier">mean</span><span class="python1-symbol">().</span><span class="python1-identifier">values
+</span><span class="python1-symbol">)
+</span><span class="python1-identifier">plt</span><span class="python1-symbol">.</span><span class="python1-identifier">ylabel</span><span class="python1-symbol">(</span><span class="python1-string">&quot;Churn Rate&quot;</span><span class="python1-symbol">)
+</span><span class="python1-identifier">plt</span><span class="python1-symbol">.</span><span class="python1-identifier">title</span><span class="python1-symbol">(</span><span class="python1-string">&quot;Churn Rate by Contract Type&quot;</span><span class="python1-symbol">)
+</span><span class="python1-identifier">plt</span><span class="python1-symbol">.</span><span class="python1-identifier">savefig</span><span class="python1-symbol">(</span><span class="python1-string">&quot;churn_by_contract.png&quot;</span><span class="python1-symbol">)
+</span><span class="python1-identifier">plt</span><span class="python1-symbol">.</span><span class="python1-identifier">show</span><span class="python1-symbol">()
+
+</span><span class="python1-comment">#churn rate by payment method
+</span><span class="python1-identifier">plt</span><span class="python1-symbol">.</span><span class="python1-identifier">figure</span><span class="python1-symbol">(</span><span class="python1-identifier">figsize</span><span class="python1-symbol">=(</span><span class="python1-number">10</span><span class="python1-symbol">,</span><span class="python1-number">4</span><span class="python1-symbol">))
+</span><span class="python1-identifier">sns</span><span class="python1-symbol">.</span><span class="python1-identifier">barplot</span><span class="python1-symbol">(
+</span><span class="python1-space">    </span><span class="python1-identifier">x</span><span class="python1-symbol">=</span><span class="python1-identifier">df</span><span class="python1-symbol">.</span><span class="python1-identifier">groupby</span><span class="python1-symbol">(</span><span class="python1-string">&quot;PaymentMethod&quot;</span><span class="python1-symbol">)[</span><span class="python1-string">&quot;Churn&quot;</span><span class="python1-symbol">].</span><span class="python1-identifier">mean</span><span class="python1-symbol">().</span><span class="python1-identifier">index</span><span class="python1-symbol">,
+</span><span class="python1-space">    </span><span class="python1-identifier">y</span><span class="python1-symbol">=</span><span class="python1-identifier">df</span><span class="python1-symbol">.</span><span class="python1-identifier">groupby</span><span class="python1-symbol">(</span><span class="python1-string">&quot;PaymentMethod&quot;</span><span class="python1-symbol">)[</span><span class="python1-string">&quot;Churn&quot;</span><span class="python1-symbol">].</span><span class="python1-identifier">mean</span><span class="python1-symbol">().</span><span class="python1-identifier">values
+</span><span class="python1-symbol">)
+</span><span class="python1-identifier">plt</span><span class="python1-symbol">.</span><span class="python1-identifier">xticks</span><span class="python1-symbol">(</span><span class="python1-identifier">rotation</span><span class="python1-symbol">=</span><span class="python1-number">45</span><span class="python1-symbol">)
+</span><span class="python1-identifier">plt</span><span class="python1-symbol">.</span><span class="python1-identifier">ylabel</span><span class="python1-symbol">(</span><span class="python1-string">&quot;Churn Rate&quot;</span><span class="python1-symbol">)
+</span><span class="python1-identifier">plt</span><span class="python1-symbol">.</span><span class="python1-identifier">title</span><span class="python1-symbol">(</span><span class="python1-string">&quot;Churn Rate by Payment Method&quot;</span><span class="python1-symbol">)
+</span><span class="python1-identifier">plt</span><span class="python1-symbol">.</span><span class="python1-identifier">xticks</span><span class="python1-symbol">(</span><span class="python1-identifier">rotation</span><span class="python1-symbol">=</span><span class="python1-number">45</span><span class="python1-symbol">)
+</span><span class="python1-identifier">plt</span><span class="python1-symbol">.</span><span class="python1-identifier">savefig</span><span class="python1-symbol">(</span><span class="python1-string">&quot;churn_by_payment.png&quot;</span><span class="python1-symbol">)
+</span><span class="python1-identifier">plt</span><span class="python1-symbol">.</span><span class="python1-identifier">show</span><span class="python1-symbol">()
+
+</span><span class="python1-comment">#clv distribution by churn
+</span><span class="python1-identifier">plt</span><span class="python1-symbol">.</span><span class="python1-identifier">figure</span><span class="python1-symbol">(</span><span class="python1-identifier">figsize</span><span class="python1-symbol">=(</span><span class="python1-number">6</span><span class="python1-symbol">,</span><span class="python1-number">4</span><span class="python1-symbol">))
+</span><span class="python1-identifier">sns</span><span class="python1-symbol">.</span><span class="python1-identifier">boxplot</span><span class="python1-symbol">(</span><span class="python1-identifier">x</span><span class="python1-symbol">=</span><span class="python1-string">&quot;Churn&quot;</span><span class="python1-symbol">,</span><span class="python1-space"> </span><span class="python1-identifier">y</span><span class="python1-symbol">=</span><span class="python1-string">&quot;CLV&quot;</span><span class="python1-symbol">,</span><span class="python1-space"> </span><span class="python1-identifier">data</span><span class="python1-symbol">=</span><span class="python1-identifier">df</span><span class="python1-symbol">)
+</span><span class="python1-identifier">plt</span><span class="python1-symbol">.</span><span class="python1-identifier">title</span><span class="python1-symbol">(</span><span class="python1-string">&quot;Customer Lifetime Value vs Churn&quot;</span><span class="python1-symbol">)
+</span><span class="python1-identifier">plt</span><span class="python1-symbol">.</span><span class="python1-identifier">savefig</span><span class="python1-symbol">(</span><span class="python1-string">&quot;clv_by_risk.png&quot;</span><span class="python1-symbol">)
+</span><span class="python1-identifier">plt</span><span class="python1-symbol">.</span><span class="python1-identifier">show</span><span class="python1-symbol">()
+
+</span><span class="python1-comment">#risk segment counts
+</span><span class="python1-identifier">plt</span><span class="python1-symbol">.</span><span class="python1-identifier">figure</span><span class="python1-symbol">(</span><span class="python1-identifier">figsize</span><span class="python1-symbol">=(</span><span class="python1-number">6</span><span class="python1-symbol">,</span><span class="python1-number">4</span><span class="python1-symbol">))
+</span><span class="python1-identifier">sns</span><span class="python1-symbol">.</span><span class="python1-identifier">countplot</span><span class="python1-symbol">(</span><span class="python1-identifier">x</span><span class="python1-symbol">=</span><span class="python1-string">&quot;RiskSegment&quot;</span><span class="python1-symbol">,</span><span class="python1-space"> </span><span class="python1-identifier">data</span><span class="python1-symbol">=</span><span class="python1-identifier">df</span><span class="python1-symbol">)
+</span><span class="python1-identifier">plt</span><span class="python1-symbol">.</span><span class="python1-identifier">title</span><span class="python1-symbol">(</span><span class="python1-string">&quot;High-Risk vs Low-Risk Customers&quot;</span><span class="python1-symbol">)
+</span><span class="python1-identifier">plt</span><span class="python1-symbol">.</span><span class="python1-identifier">savefig</span><span class="python1-symbol">(</span><span class="python1-string">&quot;risk_segment_counts.png&quot;</span><span class="python1-symbol">)
+</span><span class="python1-identifier">plt</span><span class="python1-symbol">.</span><span class="python1-identifier">show</span><span class="python1-symbol">()
+
+</span><span class="python1-identifier">df</span><span class="python1-symbol">[</span><span class="python1-string">&quot;tenure_group_encoded&quot;</span><span class="python1-symbol">]</span><span class="python1-space"> </span><span class="python1-symbol">=</span><span class="python1-space"> </span><span class="python1-identifier">df</span><span class="python1-symbol">[</span><span class="python1-string">&quot;tenure_group&quot;</span><span class="python1-symbol">].</span><span class="python1-identifier">cat</span><span class="python1-symbol">.</span><span class="python1-identifier">codes</span><span class="python1-space">  </span><span class="python1-comment"># converts categories to 0,1,2,3
+</span><span class="python1-identifier">X</span><span class="python1-space"> </span><span class="python1-symbol">=</span><span class="python1-space"> </span><span class="python1-identifier">df</span><span class="python1-symbol">.</span><span class="python1-identifier">drop</span><span class="python1-symbol">(</span><span class="python1-identifier">columns</span><span class="python1-symbol">=[</span><span class="python1-string">&quot;customerID&quot;</span><span class="python1-symbol">,</span><span class="python1-space"> </span><span class="python1-string">&quot;Churn&quot;</span><span class="python1-symbol">,</span><span class="python1-space"> </span><span class="python1-string">&quot;CLV&quot;</span><span class="python1-symbol">,</span><span class="python1-space"> </span><span class="python1-string">&quot;tenure_group&quot;</span><span class="python1-symbol">])
+</span><span class="python1-identifier">X</span><span class="python1-symbol">[</span><span class="python1-string">&quot;tenure_group&quot;</span><span class="python1-symbol">]</span><span class="python1-space"> </span><span class="python1-symbol">=</span><span class="python1-space"> </span><span class="python1-identifier">df</span><span class="python1-symbol">[</span><span class="python1-string">&quot;tenure_group_encoded&quot;</span><span class="python1-symbol">]
+
+</span><span class="python1-documentation">&quot;&quot;&quot;### Predictive Churn Model
+- Use logistic regression to predict churn probability  
+- All categorical variables are encoded using one-hot encoding to ensure the model works correctly  
+- Train/test split ensures we can evaluate model performance on unseen data  
+- Model evaluation metrics:
+  - Classification report: precision, recall, f1-score  
+  - ROC-AUC: overall predictive power  
+
+Feature importance identifies which factors drive churn, helping business teams focus retention efforts.
+
+&quot;&quot;&quot;
+
+</span><span class="python1-reservedword">import</span><span class="python1-space"> </span><span class="python1-identifier">pandas</span><span class="python1-space"> </span><span class="python1-reservedword">as</span><span class="python1-space"> </span><span class="python1-identifier">pd
+</span><span class="python1-reservedword">from</span><span class="python1-space"> </span><span class="python1-identifier">sklearn</span><span class="python1-symbol">.</span><span class="python1-identifier">model_selection</span><span class="python1-space"> </span><span class="python1-reservedword">import</span><span class="python1-space"> </span><span class="python1-identifier">train_test_split
+</span><span class="python1-reservedword">from</span><span class="python1-space"> </span><span class="python1-identifier">sklearn</span><span class="python1-symbol">.</span><span class="python1-identifier">linear_model</span><span class="python1-space"> </span><span class="python1-reservedword">import</span><span class="python1-space"> </span><span class="python1-identifier">LogisticRegression
+</span><span class="python1-reservedword">from</span><span class="python1-space"> </span><span class="python1-identifier">sklearn</span><span class="python1-symbol">.</span><span class="python1-identifier">metrics</span><span class="python1-space"> </span><span class="python1-reservedword">import</span><span class="python1-space"> </span><span class="python1-identifier">classification_report</span><span class="python1-symbol">,</span><span class="python1-space"> </span><span class="python1-identifier">roc_auc_score
+
+</span><span class="python1-comment">#remove any manually created tenure_group column
+</span><span class="python1-reservedword">if</span><span class="python1-space"> </span><span class="python1-string">&quot;tenure_group&quot;</span><span class="python1-space"> </span><span class="python1-reservedword">in</span><span class="python1-space"> </span><span class="python1-identifier">df</span><span class="python1-symbol">.</span><span class="python1-identifier">columns</span><span class="python1-symbol">:
+</span><span class="python1-space">    </span><span class="python1-identifier">df</span><span class="python1-space"> </span><span class="python1-symbol">=</span><span class="python1-space"> </span><span class="python1-identifier">df</span><span class="python1-symbol">.</span><span class="python1-identifier">drop</span><span class="python1-symbol">(</span><span class="python1-identifier">columns</span><span class="python1-symbol">=[</span><span class="python1-string">&quot;tenure_group&quot;</span><span class="python1-symbol">])
+
+</span><span class="python1-comment">#prepare features and target
+</span><span class="python1-identifier">X</span><span class="python1-space"> </span><span class="python1-symbol">=</span><span class="python1-space"> </span><span class="python1-identifier">df</span><span class="python1-symbol">.</span><span class="python1-identifier">drop</span><span class="python1-symbol">(</span><span class="python1-identifier">columns</span><span class="python1-symbol">=[</span><span class="python1-string">&quot;customerID&quot;</span><span class="python1-symbol">,</span><span class="python1-space"> </span><span class="python1-string">&quot;Churn&quot;</span><span class="python1-symbol">,</span><span class="python1-space"> </span><span class="python1-string">&quot;CLV&quot;</span><span class="python1-symbol">])</span><span class="python1-space">  </span><span class="python1-comment"># Drop target &amp; ID
+</span><span class="python1-identifier">y</span><span class="python1-space"> </span><span class="python1-symbol">=</span><span class="python1-space"> </span><span class="python1-identifier">df</span><span class="python1-symbol">[</span><span class="python1-string">&quot;Churn&quot;</span><span class="python1-symbol">]
+
+</span><span class="python1-comment">#encode all categorical/object columns ---
+</span><span class="python1-identifier">categorical_cols</span><span class="python1-space"> </span><span class="python1-symbol">=</span><span class="python1-space"> </span><span class="python1-identifier">X</span><span class="python1-symbol">.</span><span class="python1-identifier">select_dtypes</span><span class="python1-symbol">(</span><span class="python1-identifier">include</span><span class="python1-symbol">=</span><span class="python1-string">&quot;object&quot;</span><span class="python1-symbol">).</span><span class="python1-identifier">columns
+
+</span><span class="python1-comment">#one-hot encoding, drop_first=True avoids multicollinearity
+</span><span class="python1-identifier">X_encoded</span><span class="python1-space"> </span><span class="python1-symbol">=</span><span class="python1-space"> </span><span class="python1-identifier">pd</span><span class="python1-symbol">.</span><span class="python1-identifier">get_dummies</span><span class="python1-symbol">(</span><span class="python1-identifier">X</span><span class="python1-symbol">,</span><span class="python1-space"> </span><span class="python1-identifier">columns</span><span class="python1-symbol">=</span><span class="python1-identifier">categorical_cols</span><span class="python1-symbol">,</span><span class="python1-space"> </span><span class="python1-identifier">drop_first</span><span class="python1-symbol">=</span><span class="python1-nonreservedkeyword">True</span><span class="python1-symbol">)
+
+</span><span class="python1-comment">#train/test split
+</span><span class="python1-identifier">X_train</span><span class="python1-symbol">,</span><span class="python1-space"> </span><span class="python1-identifier">X_test</span><span class="python1-symbol">,</span><span class="python1-space"> </span><span class="python1-identifier">y_train</span><span class="python1-symbol">,</span><span class="python1-space"> </span><span class="python1-identifier">y_test</span><span class="python1-space"> </span><span class="python1-symbol">=</span><span class="python1-space"> </span><span class="python1-identifier">train_test_split</span><span class="python1-symbol">(
+</span><span class="python1-space">    </span><span class="python1-identifier">X_encoded</span><span class="python1-symbol">,</span><span class="python1-space"> </span><span class="python1-identifier">y</span><span class="python1-symbol">,</span><span class="python1-space"> </span><span class="python1-identifier">test_size</span><span class="python1-symbol">=</span><span class="python1-float">0.2</span><span class="python1-symbol">,</span><span class="python1-space"> </span><span class="python1-identifier">random_state</span><span class="python1-symbol">=</span><span class="python1-number">42
+</span><span class="python1-symbol">)
+
+</span><span class="python1-comment">#fit logistic regression
+</span><span class="python1-identifier">model</span><span class="python1-space"> </span><span class="python1-symbol">=</span><span class="python1-space"> </span><span class="python1-identifier">LogisticRegression</span><span class="python1-symbol">(</span><span class="python1-identifier">max_iter</span><span class="python1-symbol">=</span><span class="python1-number">500</span><span class="python1-symbol">)
+</span><span class="python1-identifier">model</span><span class="python1-symbol">.</span><span class="python1-identifier">fit</span><span class="python1-symbol">(</span><span class="python1-identifier">X_train</span><span class="python1-symbol">,</span><span class="python1-space"> </span><span class="python1-identifier">y_train</span><span class="python1-symbol">)
+
+</span><span class="python1-comment">#predictions
+</span><span class="python1-identifier">y_pred</span><span class="python1-space"> </span><span class="python1-symbol">=</span><span class="python1-space"> </span><span class="python1-identifier">model</span><span class="python1-symbol">.</span><span class="python1-identifier">predict</span><span class="python1-symbol">(</span><span class="python1-identifier">X_test</span><span class="python1-symbol">)
+</span><span class="python1-identifier">y_proba</span><span class="python1-space"> </span><span class="python1-symbol">=</span><span class="python1-space"> </span><span class="python1-identifier">model</span><span class="python1-symbol">.</span><span class="python1-identifier">predict_proba</span><span class="python1-symbol">(</span><span class="python1-identifier">X_test</span><span class="python1-symbol">)[:,</span><span class="python1-space"> </span><span class="python1-number">1</span><span class="python1-symbol">]
+
+</span><span class="python1-comment">#evaluation
+</span><span class="python1-reservedword">print</span><span class="python1-symbol">(</span><span class="python1-string">&quot;Classification Report:\n&quot;</span><span class="python1-symbol">)
+</span><span class="python1-reservedword">print</span><span class="python1-symbol">(</span><span class="python1-identifier">classification_report</span><span class="python1-symbol">(</span><span class="python1-identifier">y_test</span><span class="python1-symbol">,</span><span class="python1-space"> </span><span class="python1-identifier">y_pred</span><span class="python1-symbol">))
+</span><span class="python1-identifier">roc_auc</span><span class="python1-space"> </span><span class="python1-symbol">=</span><span class="python1-space"> </span><span class="python1-identifier">roc_auc_score</span><span class="python1-symbol">(</span><span class="python1-identifier">y_test</span><span class="python1-symbol">,</span><span class="python1-space"> </span><span class="python1-identifier">y_proba</span><span class="python1-symbol">)
+</span><span class="python1-reservedword">print</span><span class="python1-symbol">(</span><span class="python1-identifier">f</span><span class="python1-string">&quot;\nROC-AUC Score: {roc_auc:.3f}&quot;</span><span class="python1-symbol">)
+
+</span><span class="python1-comment">#feature importance
+</span><span class="python1-identifier">feature_importance</span><span class="python1-space"> </span><span class="python1-symbol">=</span><span class="python1-space"> </span><span class="python1-identifier">pd</span><span class="python1-symbol">.</span><span class="python1-identifier">DataFrame</span><span class="python1-symbol">({
+</span><span class="python1-space">    </span><span class="python1-string">&quot;feature&quot;</span><span class="python1-symbol">:</span><span class="python1-space"> </span><span class="python1-identifier">X_encoded</span><span class="python1-symbol">.</span><span class="python1-identifier">columns</span><span class="python1-symbol">,
+</span><span class="python1-space">    </span><span class="python1-string">&quot;coefficient&quot;</span><span class="python1-symbol">:</span><span class="python1-space"> </span><span class="python1-identifier">model</span><span class="python1-symbol">.</span><span class="python1-identifier">coef_</span><span class="python1-symbol">[</span><span class="python1-number">0</span><span class="python1-symbol">]
+}).</span><span class="python1-identifier">sort_values</span><span class="python1-symbol">(</span><span class="python1-identifier">by</span><span class="python1-symbol">=</span><span class="python1-string">&quot;coefficient&quot;</span><span class="python1-symbol">,</span><span class="python1-space"> </span><span class="python1-identifier">ascending</span><span class="python1-symbol">=</span><span class="python1-nonreservedkeyword">False</span><span class="python1-symbol">)
+
+</span><span class="python1-identifier">feature_importance</span><span class="python1-symbol">.</span><span class="python1-identifier">head</span><span class="python1-symbol">(</span><span class="python1-number">10</span><span class="python1-symbol">)
+
+</span><span class="python1-documentation">&quot;&quot;&quot;### Revenue-at-Risk
+- Calculate total CLV for customers who have already churned  
+- Identifies revenue that is potentially lost  
+- Segment high-risk customers based on:
+  - Month-to-month contracts  
+  - Short tenure (&lt;12 months)  
+  - Higher-than-average monthly charges  
+
+High-risk segments allow prioritization for retention campaigns targeting high-value customers.
+
+&quot;&quot;&quot;
+
+</span><span class="python1-comment">#revenue at risk (historical churn)
+</span><span class="python1-identifier">revenue_at_risk</span><span class="python1-space"> </span><span class="python1-symbol">=</span><span class="python1-space"> </span><span class="python1-identifier">df</span><span class="python1-symbol">[</span><span class="python1-identifier">df</span><span class="python1-symbol">[</span><span class="python1-string">&quot;Churn&quot;</span><span class="python1-symbol">]</span><span class="python1-space"> </span><span class="python1-symbol">==</span><span class="python1-space"> </span><span class="python1-number">1</span><span class="python1-symbol">][</span><span class="python1-string">&quot;CLV&quot;</span><span class="python1-symbol">].</span><span class="python1-identifier">sum</span><span class="python1-symbol">()
+</span><span class="python1-reservedword">print</span><span class="python1-symbol">(</span><span class="python1-identifier">f</span><span class="python1-string">&quot;Revenue at Risk (Historical): ${revenue_at_risk:,.2f}&quot;</span><span class="python1-symbol">)
+
+</span><span class="python1-identifier">df</span><span class="python1-symbol">[</span><span class="python1-string">&quot;RiskSegment&quot;</span><span class="python1-symbol">]</span><span class="python1-space"> </span><span class="python1-symbol">=</span><span class="python1-space"> </span><span class="python1-string">&quot;Low&quot;
+
+</span><span class="python1-identifier">df</span><span class="python1-symbol">.</span><span class="python1-identifier">loc</span><span class="python1-symbol">[
+</span><span class="python1-space">    </span><span class="python1-symbol">((</span><span class="python1-identifier">df</span><span class="python1-symbol">[</span><span class="python1-string">&quot;Contract&quot;</span><span class="python1-symbol">]</span><span class="python1-space"> </span><span class="python1-symbol">==</span><span class="python1-space"> </span><span class="python1-string">&quot;Month-to-month&quot;</span><span class="python1-symbol">)</span><span class="python1-space"> </span><span class="python1-symbol">&amp;</span><span class="python1-space"> </span><span class="python1-symbol">(</span><span class="python1-identifier">df</span><span class="python1-symbol">[</span><span class="python1-string">&quot;tenure&quot;</span><span class="python1-symbol">]</span><span class="python1-space"> </span><span class="python1-symbol">&lt;</span><span class="python1-space"> </span><span class="python1-number">12</span><span class="python1-symbol">))</span><span class="python1-space"> </span><span class="python1-symbol">|
+</span><span class="python1-space">    </span><span class="python1-symbol">((</span><span class="python1-identifier">df</span><span class="python1-symbol">[</span><span class="python1-string">&quot;Contract&quot;</span><span class="python1-symbol">]</span><span class="python1-space"> </span><span class="python1-symbol">==</span><span class="python1-space"> </span><span class="python1-string">&quot;Month-to-month&quot;</span><span class="python1-symbol">)</span><span class="python1-space"> </span><span class="python1-symbol">&amp;</span><span class="python1-space"> </span><span class="python1-symbol">(</span><span class="python1-identifier">df</span><span class="python1-symbol">[</span><span class="python1-string">&quot;MonthlyCharges&quot;</span><span class="python1-symbol">]</span><span class="python1-space"> </span><span class="python1-symbol">&gt;</span><span class="python1-space"> </span><span class="python1-identifier">df</span><span class="python1-symbol">[</span><span class="python1-string">&quot;MonthlyCharges&quot;</span><span class="python1-symbol">].</span><span class="python1-identifier">median</span><span class="python1-symbol">()))</span><span class="python1-space"> </span><span class="python1-symbol">|
+</span><span class="python1-space">    </span><span class="python1-symbol">((</span><span class="python1-identifier">df</span><span class="python1-symbol">[</span><span class="python1-string">&quot;tenure&quot;</span><span class="python1-symbol">]</span><span class="python1-space"> </span><span class="python1-symbol">&lt;</span><span class="python1-space"> </span><span class="python1-number">12</span><span class="python1-symbol">)</span><span class="python1-space"> </span><span class="python1-symbol">&amp;</span><span class="python1-space"> </span><span class="python1-symbol">(</span><span class="python1-identifier">df</span><span class="python1-symbol">[</span><span class="python1-string">&quot;MonthlyCharges&quot;</span><span class="python1-symbol">]</span><span class="python1-space"> </span><span class="python1-symbol">&gt;</span><span class="python1-space"> </span><span class="python1-identifier">df</span><span class="python1-symbol">[</span><span class="python1-string">&quot;MonthlyCharges&quot;</span><span class="python1-symbol">].</span><span class="python1-identifier">median</span><span class="python1-symbol">())),
+</span><span class="python1-space">    </span><span class="python1-string">&quot;RiskSegment&quot;
+</span><span class="python1-symbol">]</span><span class="python1-space"> </span><span class="python1-symbol">=</span><span class="python1-space"> </span><span class="python1-string">&quot;High&quot;
+
+</span><span class="python1-comment">#check counts
+</span><span class="python1-identifier">df</span><span class="python1-symbol">[</span><span class="python1-string">&quot;RiskSegment&quot;</span><span class="python1-symbol">].</span><span class="python1-identifier">value_counts</span><span class="python1-symbol">()
+
+</span><span class="python1-identifier">high_risk_revenue</span><span class="python1-space"> </span><span class="python1-symbol">=</span><span class="python1-space"> </span><span class="python1-identifier">df</span><span class="python1-symbol">[</span><span class="python1-identifier">df</span><span class="python1-symbol">[</span><span class="python1-string">&quot;RiskSegment&quot;</span><span class="python1-symbol">]</span><span class="python1-space"> </span><span class="python1-symbol">==</span><span class="python1-space"> </span><span class="python1-string">&quot;High&quot;</span><span class="python1-symbol">][</span><span class="python1-string">&quot;CLV&quot;</span><span class="python1-symbol">].</span><span class="python1-identifier">sum</span><span class="python1-symbol">()
+</span><span class="python1-reservedword">print</span><span class="python1-symbol">(</span><span class="python1-identifier">f</span><span class="python1-string">&quot;Revenue at Risk (High-Risk Segment): ${high_risk_revenue:,.2f}&quot;</span><span class="python1-symbol">)
+
+</span><span class="python1-identifier">high_risk_revenue</span><span class="python1-space"> </span><span class="python1-symbol">=</span><span class="python1-space"> </span><span class="python1-identifier">df</span><span class="python1-symbol">[</span><span class="python1-identifier">df</span><span class="python1-symbol">[</span><span class="python1-string">&quot;RiskSegment&quot;</span><span class="python1-symbol">]</span><span class="python1-space"> </span><span class="python1-symbol">==</span><span class="python1-space"> </span><span class="python1-string">&quot;High&quot;</span><span class="python1-symbol">][</span><span class="python1-string">&quot;CLV&quot;</span><span class="python1-symbol">].</span><span class="python1-identifier">sum</span><span class="python1-symbol">()
+</span><span class="python1-reservedword">print</span><span class="python1-symbol">(</span><span class="python1-identifier">f</span><span class="python1-string">&quot;Revenue at Risk (High-Risk Segment): ${high_risk_revenue:,.2f}&quot;</span><span class="python1-symbol">)
+
+</span><span class="python1-documentation">&quot;&quot;&quot;### Recommendations
+Based on analysis and model insights:
+- Encourage month-to-month customers to upgrade to long-term contracts  
+- Bundle add-ons to increase retention  
+- Target high-CLV, high-risk customers with personalized offers  
+- Optimize payment experience to reduce churn
+
+### Takeaway
+- Identified top churn drivers (contract type, payment method, add-ons)  
+- Calculated Customer Lifetime Value and revenue at risk  
+- Built predictive model for churn with logistic regression  
+- Provided actionable insights and recommendations for retention campaigns  
+
+This notebook demonstrates end-to-end subscription commerce analytics using real customer data.
+&quot;&quot;&quot;
+
+</span><span class="python1-identifier">plot_files</span><span class="python1-space"> </span><span class="python1-symbol">=</span><span class="python1-space"> </span><span class="python1-symbol">[
+</span><span class="python1-space">    </span><span class="python1-string">&quot;churn_by_contract.png&quot;</span><span class="python1-symbol">,
+</span><span class="python1-space">    </span><span class="python1-string">&quot;churn_by_payment.png&quot;</span><span class="python1-symbol">,
+</span><span class="python1-space">    </span><span class="python1-string">&quot;clv_by_risk.png&quot;</span><span class="python1-symbol">,
+</span><span class="python1-space">    </span><span class="python1-string">&quot;risk_segment_counts.png&quot;
+</span><span class="python1-symbol">]
+
+</span><span class="python1-reservedword">from</span><span class="python1-space"> </span><span class="python1-identifier">google</span><span class="python1-symbol">.</span><span class="python1-identifier">colab</span><span class="python1-space"> </span><span class="python1-reservedword">import</span><span class="python1-space"> </span><span class="python1-identifier">files
+
+</span><span class="python1-reservedword">for</span><span class="python1-space"> </span><span class="python1-nonreservedkeyword">file</span><span class="python1-space"> </span><span class="python1-reservedword">in</span><span class="python1-space"> </span><span class="python1-identifier">plot_files</span><span class="python1-symbol">:
+</span><span class="python1-space">    </span><span class="python1-identifier">files</span><span class="python1-symbol">.</span><span class="python1-identifier">download</span><span class="python1-symbol">(</span><span class="python1-nonreservedkeyword">file</span><span class="python1-symbol">)
+</span></code></pre><!--EndFragment--></body>
+</html>
