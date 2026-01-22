@@ -10,7 +10,13 @@ body, pre, code {
     font-family: 'Montserrat', monospace;
 }
 
-
+.project-skills {
+	font-size: 0.85em;
+	color: #777;
+	margin-top: -0.5em;
+	margin-bottom: 1em;
+  }
+  
 html, body, div, span, applet, object,
 iframe, h1, h2, h3, h4, h5, h6, p, blockquote,
 pre, a, abbr, acronym, address, big, cite,
