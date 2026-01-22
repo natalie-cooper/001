@@ -58,9 +58,6 @@
 						  
 							<!-- Action buttons (same size using flex) -->
 							<div style="display:flex; justify-content:center; gap:20px; margin-top:15px;">
-							  <a href="https://github.com/natalie-cooper/001" target="_blank" class="button large" style="flex:1; text-align:center;">
-								View Project
-							  </a>
 							  <a href="https://github.com/natalie-cooper/001/blob/main/notebooks/churn_analysis.ipynb" 
 								 target="_blank" class="button large" style="flex:1; text-align:center;">
 								View Notebook
@@ -124,10 +121,44 @@
 											<strong>Tools:</strong> Python, Tableau, Pandas, Data Visualization
 										  </p>
 										  
-									<ul class="actions special">
-										<li><a href="https://public.tableau.com/app/profile/natalie.cooper8759/vizzes" 
-											target="_blank" class="button">View Dashboard</a></li>
-									</ul>
+										  <style>
+											.actions.special {
+												display: flex;
+												justify-content: center;  /* center horizontally */
+												align-items: center;      /* center vertically */
+												gap: 20px;                /* space between buttons */
+												margin-top: 15px;
+												padding: 0;
+												list-style: none;
+											}
+											
+											.actions.special li {
+												flex: 0 0 auto;           /* shrink/grow disabled, size by content */
+											}
+											
+											.actions.special li a {
+												display: inline-flex;     /* inline-flex allows vertical centering inside button */
+												align-items: center;      /* center text vertically inside button */
+												justify-content: center;  /* center text horizontally */
+												min-width: 180px;         /* optional: make all buttons same minimum width */
+												padding: 0.8em 1.5em;     /* consistent padding */
+												text-align: center;
+											}
+											</style>
+											
+											<ul class="actions special">
+											  <li>
+												<a href="https://public.tableau.com/app/profile/natalie.cooper8759/viz/EnergyGenerationRenewableTrendsAnalysis/EnergyInsights" 
+												   target="_blank" class="button">View Dashboard</a>
+											  </li>
+											  <li>
+												<a href="https://github.com/natalie-cooper/001/blob/main/notebooks/energy_dataset_cleaning.ipynb" 
+												   target="_blank" class="button large">View Notebook</a>
+											  </li>
+											</ul>
+											
+											
+										  
 								</article>
 								<article>
 									<header>
